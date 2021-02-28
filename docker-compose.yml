@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  # Start a MongoDB database on localhost at port 27017.
+  #
+  # With this current configuration, the data stored to the database will not persist to
+  # disk when the container is shutdown. I'll add this configuration in later once we start
+  # to make headway on the application, but for now it prevents our disk space filling up
+  # with useless test database data.
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+    - "27017:27017"
+
+    # Start the environment with the username, password, and database all set initially
+    # to slackord instead of the defaults.
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: slackord
+      MONGO_INITDB_ROOT_PASSWORD: slackord
+      MONGO_INITDB_DATABASE: slackord
+
+    volumes:
+    - "./docker/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro"
+
