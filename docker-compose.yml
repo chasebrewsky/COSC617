@@ -23,3 +23,9 @@ services:
     volumes:
     - "./docker/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro"
 
+  # Start a redis instance without a password. Never do this in production, but we're just developing here.
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
