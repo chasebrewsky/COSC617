@@ -4,7 +4,9 @@ const path = require('path');
 const session = require('express-session');
 const cookieParser =  require('cookie-parser');
 
-const indexRouter = require('./routes');
+const indexRouter = require('./routes/index');
+const channelRouter = require('./routes/channel')
+
 const db = require('./shared/db');
 const config = require('./shared/config');
 const logger = require('./shared/logger');
@@ -27,7 +29,7 @@ module.exports = async () => {
   app.set('view engine', 'ejs');
 
   // Middleware
-  app.use(require('pino-http')({logger}));
+  //app.use(require('pino-http')({logger}));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(session({
@@ -42,6 +44,7 @@ module.exports = async () => {
 
   // Routes
   app.use('/', indexRouter);
+  app.use('/', channelRouter);
 
   // // Catch 404 and forward to error handler
   // app.use((req, res, next) => {

@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const Counter = require('../models/counter');
+//const Channel = require('../models/channel');
 
 // Home page. Increments a counter each time you visit.
 router.get('/', async (req, res) => {
