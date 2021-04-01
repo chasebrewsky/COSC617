@@ -1,16 +1,17 @@
 const express = require('express');
 require('express-async-errors');
 const path = require('path');
-const session = require('express-session');
 const cookieParser =  require('cookie-parser');
+const http = require('http');
+const WebSocket = require('ws');
 
 const indexRouter = require('./routes');
 const db = require('./shared/db');
 const config = require('./shared/config');
 const logger = require('./shared/logger');
 const redis = require('./shared/redis');
-
-let RedisStore = require('connect-redis')(session);
+const session = require('./shared/session');
+const sockets = require('./shared/sockets');
 
 // Application instance holder.
 let app;
@@ -27,16 +28,10 @@ module.exports = async () => {
   app.set('view engine', 'ejs');
 
   // Middleware
-  app.use(require('pino-http')({logger}));
+  app.use(require('pino-http')({ logger }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-  app.use(session({
-    store: new RedisStore({ client: redis.client() }),
-    secret: config.secret,
-    resave: false,
-    saveUninitialized: false,
-  }))
-  app.use(redis.middleware);
+  app.use(session.middleware);
   app.use(cookieParser(config.secret));
   app.use(express.static(path.join(__dirname, 'public')));
 
@@ -54,5 +49,9 @@ module.exports = async () => {
     next(err);
   });
 
-  return app;
+  const server = http.createServer(app);
+
+  sockets.attach(server);
+
+  return {http: server, app};
 };

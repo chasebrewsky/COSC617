@@ -1,6 +1,6 @@
 const Redis = require('ioredis');
 const config = require('./config');
-const logger = require('./logger');
+const { memget } = require("./memoize");
 
 
 module.exports = {
@@ -13,14 +13,9 @@ module.exports = {
    *
    * @returns {Redis}
    */
-  client: () => {
-    const client = new Redis(config.redis_uri);
-    logger.info("Connected to Redis");
-    module.exports.client = () => client;
-    return client;
-  },
-  middleware: (req, res, next) => {
-    req.redis = module.exports.client();
-    next();
-  },
-}
+  get cache() { return new Redis(config.redis_uri); },
+  get publisher() { return new Redis(config.redis_uri); },
+  get subscriber() { return new Redis(config.redis_uri); },
+};
+
+memget(module.exports, ['cache', 'publisher', 'subscriber']);
