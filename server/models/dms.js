@@ -10,6 +10,9 @@ module.exports = {
     id: ObjectId,
     channelId: { type: ObjectId, require: true },
     userId: { type: ObjectId, required: true },
-    content: { type: String, required: true },
-  }))
+    content: { type: String, required: true }
+  },{
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
+    }
+  ))
 }

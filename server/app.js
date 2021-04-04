@@ -5,6 +5,7 @@ const session = require('express-session');
 const cookieParser =  require('cookie-parser');
 
 const indexRouter = require('./routes');
+const dms = require('./routes/dms');
 const db = require('./shared/db');
 const config = require('./shared/config');
 const logger = require('./shared/logger');
@@ -42,7 +43,7 @@ module.exports = async () => {
 
   // Routes
   app.use('/', indexRouter);
-
+  app.use('/api/dms', dms);
   // // Catch 404 and forward to error handler
   // app.use((req, res, next) => {
   //   next(createError(404));
