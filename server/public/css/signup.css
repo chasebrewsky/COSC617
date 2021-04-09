@@ -1,0 +1,47 @@
+h1 {
+    color: #14b5b0;
+    text-decoration: overline underline;
+}
+body{
+  text-align: center;
+}
+
+div.signup {
+  background-color: white;
+  border: 15px solid green;
+  padding: 50px;
+  margin: 20px;
+}
+/*
+Bold all table header elements
+Make the table header elements have a height of 65px.
+*/
+th {
+    font-weight: bold;
+    height: 65px;
+}
+/*
+Make the width of the table 75%
+*/
+table {
+    width: 75%;
+}
+/*
+Add a 1px solid black border
+Make each cell a height of 50px
+*/
+td {
+    border: 1px solid #14b5b0;
+    text-align: left;
+    padding: 8px;
+    height: 50px;
+  }
+  div.hwlogo {
+    background-image: url('LOGO.jpg');
+    width: 100px;
+    height: 100px;
+    margin: 2px;
+    padding: 2px;
+    }
+  
+  A:hover { COLOR: #14b5b0; TEXT-DECORATION: underline; font-weight: bold }
