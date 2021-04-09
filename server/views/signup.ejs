@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" class="has-background-light">
+<head>
+  <% include header.ejs %>
+</head>
+<body>
+  <div class="container is-flex is-justify-content-center">
+    <div class="card mt-5" style="min-width: 35rem">
+      <div class="card-content">
+        <h1 class="title">Signup</h1>
+
+        <% if (errors) { %>
+          <pre><%= errors %></pre>
+        <% } %>
+        <form method="post">
+          <div class="field">
+            <label class="label" for="first-name">First Name</label>
+            <div class="control">
+              <input id="first-name" name="first_name" class="input" type="text">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="last-name">Last Name</label>
+            <div class="control">
+              <input id="last-name" name="last_name" class="input" type="text">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <div class="control">
+              <input id="email" name="email" class="input" type="text">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="password">Password</label>
+            <div class="control">
+              <input id="password" name="password" class="input" type="password">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="password-confirmation">Password Confirmation</label>
+            <div class="control">
+              <input id="password-confirmation" name="password_confirmation" class="input" type="password">
+            </div>
+          </div>
+          <input type="submit" value="Submit">
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

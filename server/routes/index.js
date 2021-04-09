@@ -8,7 +8,11 @@ router.get('/', async (req, res) => {
 
   // Use the session to count number of times visited in the session.
   req.session.visits = req.session.visits ? req.session.visits + 1 : 1;
-  res.render('index', {title: 'Express', count: counter ? counter.count : 0, sessionCount: req.session.visits});
+  res.render('index', {
+    title: 'Express',
+    count: counter ? counter.count : 0, sessionCount: req.session.visits,
+    email: req.user ? req.user.email : '',
+  });
 });
 
 module.exports = router;

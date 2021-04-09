@@ -5,11 +5,12 @@ const cookieParser =  require('cookie-parser');
 const http = require('http');
 const WebSocket = require('ws');
 
-const indexRouter = require('./routes');
+const indexRouter = require('./routes/index');
+const authRouter = require('./routes/auth')
 const db = require('./shared/db');
+const auth = require('./shared/auth');
 const config = require('./shared/config');
 const logger = require('./shared/logger');
-const redis = require('./shared/redis');
 const session = require('./shared/session');
 const sockets = require('./shared/sockets');
 
@@ -35,7 +36,11 @@ module.exports = async () => {
   app.use(cookieParser(config.secret));
   app.use(express.static(path.join(__dirname, 'public')));
 
+  // User middleware. This will place the user object onto the request if it exists.
+  app.use(auth.middleware);
+
   // Routes
+  app.use('/', authRouter);
   app.use('/', indexRouter);
 
   // // Catch 404 and forward to error handler
