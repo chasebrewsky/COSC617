@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-    <h2>Students</h2>
-    <ul>
-      <li>Chase Brewer</li>
-      <li>Jacob Wilson</li>
-      <li>Sachin Hebbar</li>
-      <li>Matt Coury</li>
-    </ul>
-    <p>Visited <%= count %> times</p>
-    <p>Session visited <%= sessionCount %> times</p>
-  </body>
+<html lang="en">
+<head>
+	<title>SLACKLORD</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="./css/index.css">
+</head>
+<body>
+	<div class= 'slackLord_logo'></div> 
+    <center> <h1>Welcome to SlackLord</h1> </center>   
+    <form method="post">
+		<div class="container">
+      <label for="email">Email Address:</label>
+      <input id="email" name="email" class="input" type="text">
+      <br><br>
+      <label for="password">Password:</label>
+      <input id="password" name="password" class="input" type="password">
+      <center><button type="submit">Login</button></center> 
+    </div>
+		<a class="signup" href="/signup">Create account</a>
+    </form>   
+</body>
 </html>

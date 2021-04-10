@@ -1,14 +1,38 @@
 const router = require('express').Router();
-const Counter = require('../models/counter');
+const yup = require('yup');
+const bcrypt = require('bcrypt');
+const config = require('../shared/config');
+const User = require('../models/user');
 
-// Home page. Increments a counter each time you visit.
-router.get('/', async (req, res) => {
-  // Saved long term visits to the MongoDB database. Persists between sessions.
-  const counter = await Counter.findOneAndUpdate({id: '56cb91bdc3464f14678934ca'}, {$inc: {count: 1}}, {upsert: true});
+const LoginSchema = yup.object().shape({
+  email: yup.string().email().required(),
+  password: yup.string().required(),
+});
 
-  // Use the session to count number of times visited in the session.
-  req.session.visits = req.session.visits ? req.session.visits + 1 : 1;
-  res.render('index', {title: 'Express', count: counter ? counter.count : 0, sessionCount: req.session.visits});
+router.get('/', (req, res) => {
+  return res.render('index', {title: 'index', errors: null});
+});
+
+router.post('/', async (req, res) => {
+  let parsed;
+  try {
+    parsed = await LoginSchema.validate(req.body, {abortEarly: false});
+  } catch (error) {
+    return res.render('index', {title: 'index', errors: error.errors});
+  }
+  let user;
+  try {
+    user = await User.findOne({email: parsed.email}).exec();
+  } catch (error) {
+    return res.render('index', {title: 'index', errors: ['Invalid credentials']});
+  }
+  if (!user) res.render('index', {title: 'index', errors: ['Invalid credentials']});
+  const matches = await bcrypt.compare(parsed.password, user.password);
+  if (!matches) {
+    return res.render('index', {title: 'index', errors: ['Invalid credentials']});
+  }
+  req.session.userId = user._id;
+  return res.redirect('/landingpage');
 });
 
 module.exports = router;
