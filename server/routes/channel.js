@@ -21,12 +21,14 @@ router.get('/channels', async (req, res) => {
 });
 
 //Create Channel
-//TODO - How to test post?
-router.post('api/channels/', async (req, res) => {
+//TODO - Error handling, avoid null names
+router.post('/api/channels/', async (req, res) => {
+
+  // console.log(req.body);
 
   var channelName=req.body.name;
 
-  console.log(channelName);
+  // console.log(channelName);
 
   var filter = {
     "channelName":channelName
@@ -48,8 +50,8 @@ router.post('api/channels/', async (req, res) => {
 });
 
 //Update Channel Name
-//TODO - test put request
-router.put('api/channels/:id', async (req, res) => {
+//TODO - Error handling, avoid duplicate names?
+router.put('/api/channels/:id', async (req, res) => {
 
   var channelName=req.body.name;
   var channelId=req.params.id;
@@ -80,7 +82,11 @@ router.put('api/channels/:id', async (req, res) => {
 
 });
 
-//TODO - Channel Messages
+//Return messages
+router.get('/api/channels/{id}/messages?last=[str]?limit=[int]', async(req, res) => {
+
+});
+
 
 //Return list of all channels
 router.get('/api/channels', async (req, res) => {
