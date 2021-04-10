@@ -19,6 +19,7 @@ router.get('/signup', (req, res) => {
   return res.render('signup', {title: 'Signup', errors: null});
 });
 
+
 router.post('/signup', async (req, res) => {
   let parsed;
   try {
@@ -26,7 +27,7 @@ router.post('/signup', async (req, res) => {
   } catch (error) {
     return res.render('signup', {title: 'Signup', errors: error.errors});
   }
-  const matches = await User.find({email: parsed.email}).exec();
+  const matches = await User.find({username: parsed.email}).exec();
   if (matches.length) {
     return res.render('signup', {title: 'Signup', errors: ['User with email already exists']});
   }

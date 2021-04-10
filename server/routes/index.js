@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
   }
   let user;
   try {
-    user = await User.findOne({email: parsed.email}).exec();
+    user = await User.findOne({username: parsed.email}).exec();
   } catch (error) {
     return res.render('index', {title: 'index', errors: ['Invalid credentials']});
   }
