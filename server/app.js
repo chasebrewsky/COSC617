@@ -44,27 +44,24 @@ module.exports = async () => {
   app.use(cookieParser(config.secret));
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // Check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
-// This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
-app.use((req, res, next) => {
-  if (req.cookies.user_sid && !req.session.user) {
-    res.clearCookie("user_sid");
-  }
-  next();
-});
+  // //check if the user is in session
+  // app.use(function(req, res, next) { 
+  //   if (req.session.userId) {
+  //     console.log(req.session.userId);
+  //     next();
+  //   } else {
+  //     res.render('/');
+  //     next();
+  //   }
+  // });
 
-// middleware function to check for logged-in users
-var sessionChecker = (req, res, next) => {
-  if (req.session.user && req.cookies.user_sid) {
-    res.redirect("/user");
-  } else {
-    next();
-  }
-};
+  // //logout
+  // app.get('/logout', (req, res)=>{
+  //   req.session.destroy();
+  //   //res.redirect('/')
+  // })
 
 // Routes
-
-
 //the landing page
   app.use('/', indexRouter);
 
