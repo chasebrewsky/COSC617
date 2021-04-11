@@ -12,6 +12,7 @@ const db = require('./shared/db');
 const config = require('./shared/config');
 const logger = require('./shared/logger');
 const redis = require('./shared/redis');
+const auth = require('./shared/auth');
 const user = require('./models/user');
 
 let RedisStore = require('connect-redis')(session);
@@ -44,22 +45,9 @@ module.exports = async () => {
   app.use(cookieParser(config.secret));
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // //check if the user is in session
-  // app.use(function(req, res, next) { 
-  //   if (req.session.userId) {
-  //     console.log(req.session.userId);
-  //     next();
-  //   } else {
-  //     res.render('/');
-  //     next();
-  //   }
-  // });
-
-  // //logout
-  // app.get('/logout', (req, res)=>{
-  //   req.session.destroy();
-  //   //res.redirect('/')
-  // })
+  // User middleware. This will place the user object onto the request if it exists.
+  app.use(auth.middleware);
+  app.use(auth.loginRequired);
 
 // Routes
 //the landing page

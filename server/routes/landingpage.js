@@ -4,20 +4,10 @@ const yup = require('yup');
 const bcrypt = require('bcrypt');
 const config = require('../shared/config');
 const User = require('../models/user');
-const authenticate = require('../shared/authenticate');
-
-
+const auth = require('../shared/auth');
 
 router.get('/landingpage', (req, res, next) => {
-  const authenticated = authenticate(req, res);
-    // Return the regular signup page on each GET request.
-    if(authenticated){
-      return res.render('landingpage', {title: 'landingpage', errors: null});
-    }
-    else{
-      return res.redirect('/');
-    }
-    
+  return res.render('landingpage', {title: 'landingpage', errors: null});
+});
 
-  });
-  module.exports = router;
+module.exports = router;
