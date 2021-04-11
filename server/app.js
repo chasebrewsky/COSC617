@@ -47,7 +47,6 @@ module.exports = async () => {
 
   // User middleware. This will place the user object onto the request if it exists.
   app.use(auth.middleware);
-  app.use(auth.loginRequired);
 
 // Routes
 //the landing page
@@ -57,7 +56,7 @@ module.exports = async () => {
   app.use('/', signupRouter);
 
   //the landing page
-  app.use('/', landingpageRouter);
+  app.use('/',auth.loginRequired, landingpageRouter);
 
   // // Catch 404 and forward to error handler
   // app.use((req, res, next) => {
