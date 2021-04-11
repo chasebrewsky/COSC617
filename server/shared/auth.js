@@ -17,7 +17,16 @@ module.exports = {
   },
   // This is middleware used to only allow individuals who are logged in.
   loginRequired: (req, res, next) => {
-    if (!req.user) return res.render('index', {title: 'index', errors: null});
-    next();
-  },
-};
+    if (!req.user && req.originalUrl== '/'){
+        return res.render('index');
+        next();
+      }
+      else if(!req.user && req.originalUrl == '/signup'){
+        next();
+      }
+      else {
+        return res.render('index');
+        next();
+      }
+  }
+}
