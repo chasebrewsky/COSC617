@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>SlackLord | Logout</title>
+</head>
+<body>
+  <form id="logout" method="post">
+    <% include csrf.ejs %>
+  </form>
+</body>
+<script>
+  document.getElementById('logout').submit();
+</script>
+</html>

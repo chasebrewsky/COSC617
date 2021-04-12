@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>SlackLord | Login</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="./static/css/index.css">
+</head>
+<body>
+  <div class= "slackLord_logo"></div>
+    <h1>Welcome to SlackLord</h1>
+    <form method="post">
+      <div class="container">
+        <label for="email">Email Address:</label>
+        <input id="email" name="email" class="input" type="text">
+        <br><br>
+        <label for="password">Password:</label>
+        <input id="password" name="password" class="input" type="password">
+        <button type="submit">Login</button>
+        <% include csrf.ejs %>
+      </div>
+      <a class="signup" href="/signup">Create account</a>
+    </form>   
+</body>
+</html>

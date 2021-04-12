@@ -8,12 +8,12 @@ a {
 }
 
 /* LOGIN PAGE */
-login_limiter {
+.login_limiter {
   width: 100%;
   margin: 0 auto;
 }
 
-login_container {
+.login_container {
   width: 100%;  
   min-height: 100vh;
   display: -webkit-box;
@@ -28,7 +28,7 @@ login_container {
   background: #f2f2f2;
 }
 
-login_wrap {
+.login_wrap {
   width: 1170px;
   background: #fff;
   overflow: hidden;
@@ -42,7 +42,7 @@ login_wrap {
   flex-direction: row-reverse;
 }
 
-login_more {
+.login_more {
   width: 50%;
   background-repeat: no-repeat;
   background-size: cover;
@@ -51,7 +51,7 @@ login_more {
   z-index: 0;
 }
 
-login_form {
+.login_form {
   width: 50%;
   display: -webkit-box;
   display: -webkit-flex;
@@ -62,7 +62,7 @@ login_form {
   padding: 303px 65px 40px 65px;
 }
 
-login_form_title {
+.login_form_title {
   font-family: Poppins-Regular;
   font-size: 20px;
   color: #555555;
@@ -74,10 +74,11 @@ login_form_title {
   width: 100%;
   display: block;
 }
+
 div.slacklordlogo {
   background-image: url(./public/LOGO.jpg);
   width: 100px;
   height: 100px;
   margin: 2px;
   padding: 2px;
-  }
+}

@@ -33,12 +33,12 @@ input[type=text], input[type=password] {
     box-sizing: border-box;
 }
 
-div.container {
+.container {
     padding: 25px;   
     background-color: #14b9f0;
 }
 
-div.slackLord_logo{
+.slackLord_logo{
     background-image: url("../images/logo2.jpg");
     width: 100px;
     height: 100px;
