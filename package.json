@@ -6,6 +6,7 @@
     "start": "node server/bin/serve.js"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "connect-redis": "^5.1.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
@@ -23,6 +24,7 @@
     "pino-http": "^5.5.0",
     "pino-pretty": "^4.5.0",
     "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react-dom": "^17.0.1",
+    "yup": "^0.32.9"
   }
 }

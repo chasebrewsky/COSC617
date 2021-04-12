@@ -4,11 +4,15 @@ const path = require('path');
 const session = require('express-session');
 const cookieParser =  require('cookie-parser');
 
-const indexRouter = require('./routes');
+const authRouter = require('./routes/auth');
+const appRouter = require('./routes/app');
+
 const db = require('./shared/db');
 const config = require('./shared/config');
 const logger = require('./shared/logger');
 const redis = require('./shared/redis');
+const auth = require('./shared/auth');
+const security = require('./shared/security');
 
 let RedisStore = require('connect-redis')(session);
 
@@ -27,7 +31,7 @@ module.exports = async () => {
   app.set('view engine', 'ejs');
 
   // Middleware
-  app.use(require('pino-http')({logger}));
+  //app.use(require('pino-http')({logger}));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(session({
@@ -36,17 +40,17 @@ module.exports = async () => {
     resave: false,
     saveUninitialized: false,
   }))
+  app.use('/static', express.static(path.join(__dirname, 'public')));
   app.use(redis.middleware);
   app.use(cookieParser(config.secret));
-  app.use(express.static(path.join(__dirname, 'public')));
 
-  // Routes
-  app.use('/', indexRouter);
+  // User middleware. This will place the user object onto the request if it exists.
+  app.use(security.CSRFMiddleware)
+  app.use(auth.middleware);
 
-  // // Catch 404 and forward to error handler
-  // app.use((req, res, next) => {
-  //   next(createError(404));
-  // });
+  // Authentication routes
+  app.use('/', authRouter);
+  app.use('/', appRouter)
 
   // Error handler
   app.use((err, req, res, next) => {
