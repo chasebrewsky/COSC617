@@ -40,6 +40,7 @@ module.exports = async () => {
     resave: false,
     saveUninitialized: false,
   }))
+  app.use('/static', express.static(path.join(__dirname, '../dist')));
   app.use('/static', express.static(path.join(__dirname, 'public')));
   app.use(redis.middleware);
   app.use(cookieParser(config.secret));
