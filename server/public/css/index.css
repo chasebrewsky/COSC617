@@ -1,0 +1,51 @@
+body {
+    font-family: Roboto, Helvetica, sans-serif;
+    font-size:larger;
+    font-weight: bold;
+    /*background-color: #8fdff3;*/
+    /*padding-left: 20%;*/
+    /*padding-right: 20%;*/
+}
+
+button, input[type=submit] {
+    background-color: #08750b;
+    width: 20%;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 15px;
+    border: none;
+    cursor:grab;
+}
+
+form {
+    margin: 15px;
+    border: 5px solid #ffffff;
+    padding: 2%;
+    background-color: dodgerblue;
+}
+
+input[type=text], input[type=password] {
+    width: 100%;
+    margin: 8px 0;  
+    padding: 12px 20px;   
+    display: inline-block;   
+    border: 2px solid #045304;   
+    box-sizing: border-box;
+}
+
+.container {
+    padding: 25px;   
+    background-color: #14b9f0;
+}
+
+.slackLord_logo{
+    background-image: url("../images/logo2.jpg");
+    width: 100px;
+    height: 100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+a.signup{
+    color: #f8f8ff;
+}

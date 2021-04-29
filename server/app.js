@@ -5,13 +5,19 @@ const cookieParser =  require('cookie-parser');
 const http = require('http');
 const WebSocket = require('ws');
 
-const indexRouter = require('./routes');
+const authRouter = require('./routes/auth');
+const appRouter = require('./routes/app');
+
 const db = require('./shared/db');
 const config = require('./shared/config');
 const logger = require('./shared/logger');
 const redis = require('./shared/redis');
 const session = require('./shared/session');
 const sockets = require('./shared/sockets');
+const auth = require('./shared/auth');
+const security = require('./shared/security');
+
+let RedisStore = require('connect-redis')(session);
 
 // Application instance holder.
 let app;
@@ -32,16 +38,18 @@ module.exports = async () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(session.middleware);
+  app.use('/static', express.static(path.join(__dirname, '../dist')));
+  app.use('/static', express.static(path.join(__dirname, 'public')));
+  app.use(redis.middleware);
   app.use(cookieParser(config.secret));
-  app.use(express.static(path.join(__dirname, 'public')));
 
-  // Routes
-  app.use('/', indexRouter);
+  // User middleware. This will place the user object onto the request if it exists.
+  app.use(security.CSRFMiddleware)
+  app.use(auth.middleware);
 
-  // // Catch 404 and forward to error handler
-  // app.use((req, res, next) => {
-  //   next(createError(404));
-  // });
+  // Authentication routes
+  app.use('/', authRouter);
+  app.use('/', appRouter)
 
   // Error handler
   app.use((err, req, res, next) => {
