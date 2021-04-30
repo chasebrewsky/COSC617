@@ -17,7 +17,7 @@ const sockets = require('./shared/sockets');
 const auth = require('./shared/auth');
 const security = require('./shared/security');
 
-let RedisStore = require('connect-redis')(session);
+// let RedisStore = require('connect-redis')(session);
 
 // Application instance holder.
 let app;
@@ -34,13 +34,13 @@ module.exports = async () => {
   app.set('view engine', 'ejs');
 
   // Middleware
-  app.use(require('pino-http')({ logger }));
+  // app.use(require('pino-http')({ logger }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(session.middleware);
   app.use('/static', express.static(path.join(__dirname, '../dist')));
   app.use('/static', express.static(path.join(__dirname, 'public')));
-  app.use(redis.middleware);
+  // app.use(redis.middleware);
   app.use(cookieParser(config.secret));
 
   // User middleware. This will place the user object onto the request if it exists.

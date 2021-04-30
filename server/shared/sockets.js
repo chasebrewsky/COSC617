@@ -34,11 +34,12 @@ function unsubscribe(ws, channel) {
 }
 
 const socketHandlers = {
-  channel_subscribe: (ws, message) => {
-    const channel = message.payload;
+  CHANNEL_SUBSCRIBE: (ws, message) => {
+    const { type, id } = message.payload;
+    const channelId = `${type}:${id}`;
     // Remove websocket from channel if its connected to one.
-    if (ws.channel) unsubscribe(ws, ws.channel);
-    subscribe(ws, channel);
+    if (ws.channel) unsubscribe(ws, channelId);
+    subscribe(ws, channelId);
   },
 
   /**
@@ -46,9 +47,9 @@ const socketHandlers = {
    * @param ws
    * @param message
    */
-  typing: (ws, message) => {
+  TYPING: (ws, message) => {
     redis.publisher.publish(ws.channel, JSON.stringify({
-      type: 'typing',
+      type: 'TYPING',
       payload: message.payload,
     }));
   },
@@ -56,12 +57,12 @@ const socketHandlers = {
 
 
 const redisHandlers = {
-  typing: (channel, message) => {
+  TYPING: (channel, message) => {
     const sockets = subscriptions.get(channel);
     if (!sockets) return;
     sockets.forEach(socket => {
       socket.send(JSON.stringify({
-        type: 'typing',
+        type: 'TYPING',
         payload: message.payload,
       }));
     });

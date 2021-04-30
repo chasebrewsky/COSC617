@@ -23,4 +23,12 @@ export const useStyles = makeStyles((theme) => ({
   content: {
     flexGrow: 1,
   },
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  message: {
+    padding: '1rem',
+    marginTop: '1rem',
+  }
 }));

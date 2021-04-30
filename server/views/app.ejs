@@ -11,9 +11,11 @@
   <div id="root">
     <h1>React App goes here.</h1>
   </div>
-  <a href="/logout">Logout</a>
   <script>
-    const CSRFToken = '<%= csrftoken %>';
+    window.config = {
+      CSRFToken: '<%= csrftoken %>',
+      websocketURL: '<%= websocketURL %>',
+    };
   </script>
   <script src="/static/js/app.js"></script>
 </body>
