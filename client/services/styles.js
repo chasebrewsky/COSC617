@@ -16,6 +16,8 @@ export const useStyles = makeStyles((theme) => ({
   },
   logo: {
     padding: theme.spacing(2),
+    display: 'flex',
+    alignItems: 'center',
   },
   drawerPaper: {
     width: 240,

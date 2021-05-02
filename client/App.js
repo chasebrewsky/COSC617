@@ -20,7 +20,16 @@ export default function App() {
         <Drawer variant="permanent" anchor="left" className={classes.drawer} classes={{
           paper: classes.drawerPaper,
         }}>
-          <Typography variant="h6" className={classes.logo}>SlackLord</Typography>
+          <Typography variant="h6" className={classes.logo}>
+            <img src="/static/images/logo.jpg" style={{
+              maxWidth: '4rem',
+              marginTop: '-1rem',
+              marginLeft: '-1rem',
+              marginBottom: '-1rem',
+              marginRight: '0.5rem',
+            }} />
+            <span>SlackLord</span>
+          </Typography>
           <Divider />
           <List component="nav">
             <ChannelList />
