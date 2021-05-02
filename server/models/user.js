@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
-module.exports = mongoose.model('users', new mongoose.Schema({
-  id: mongoose.Schema.Types.ObjectId,
+module.exports = mongoose.model('User', new mongoose.Schema({
   username: { type: String, unique: true, required: true, sparse: true},
-  password: { type: String, required: true }, // THIS MUST BE HASH BEFORE SAVING IN DB. Argon2 seems to be the best.
+  password: { type: String, required: true },
   firstName: { type: String },
   lastName: { type: String },
-}))
+  channelIds: [mongoose.ObjectId],
+}));

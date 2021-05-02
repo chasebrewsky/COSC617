@@ -9,7 +9,7 @@ const { memget } = require("./memoize");
 module.exports = {
   get middleware() {
     return session({
-      store: new RedisStore({ client: redis.cache }),
+      collection: new RedisStore({ client: redis.cache }),
       secret: config.secret,
       resave: false,
       saveUninitialized: false,

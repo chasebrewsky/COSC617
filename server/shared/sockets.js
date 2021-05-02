@@ -1,74 +1,146 @@
 const redis = require('./redis');
 const session = require('./session');
+const auth = require('./auth');
 const logger = require('./logger');
 const WebSocket = require('ws');
 const { memget } = require('./memoize');
 
-const subscriptions = new Map();
+const serialize = (type, payload) => JSON.stringify({ type, payload });
+const send = (ws, type, payload) => ws.send(serialize(type, payload));
 
-function subscribe(ws, channel) {
-  let sockets = subscriptions.get(channel);
-  if (!sockets) {
-    redis.subscriber.subscribe(channel, (err, count) => {
-      if (err) return logger.error(err);
-      logger.debug("Currently subscribed to %d channels", count);
-    });
-    sockets = new Set();
-    subscriptions.set(channel, sockets);
+const CHANNEL_EVENTS = Object.freeze({
+  TYPING: 'TYPING',
+  MESSAGE: 'MESSAGE',
+});
+
+class Channel {
+  constructor(id) {
+    this.id = id;
+    this.connections = new Set();
   }
-  sockets.add(ws);
-  ws.channel = channel;
+
+  add(ws) {
+    if (this.connections.has(ws)) return;
+
+    this.connections.add(ws);
+
+    const remove = () => this.remove(ws);
+    const unsubscribe = id => {
+      if (id !== this.id) return;
+
+      ws.removeEventListener('close', remove);
+      ws.removeEventListener('unsubscribe', unsubscribe);
+    };
+
+    ws.on('close', remove);
+    ws.on('unsubscribe', unsubscribe);
+  }
+
+  remove(ws) {
+    if (!this.connections.has(ws)) return;
+
+    ws.emit('unsubscribe', this.id);
+  }
+
+  publish(event, payload) {
+    logger.debug({ event, payload, channel: `CHANNEL:${this.id}` }, 'Publishing to redis');
+    redis.publisher.publish(`CHANNEL:${this.id}`, JSON.stringify({ type: event, payload }));
+  }
 }
 
-function unsubscribe(ws, channel) {
-  const sockets = subscriptions.get(channel);
-  if (!sockets) return;
-  sockets.delete(ws);
-  if (sockets.length) return;
-  logger.debug("Unsubscribing from redis channel %s", channel);
-  redis.subscriber.unsubscribe(channel, (err, count) => {
-    if (err) return logger.error(err);
-    logger.debug("Currently subscribed to %d channels", count);
-  });
-  subscriptions.delete(channel);
-}
+const manager = {
+  channels: {},
+  subscribe(ws, id) {
+    let channel = this.channels[id];
 
-const socketHandlers = {
-  CHANNEL_SUBSCRIBE: (ws, message) => {
-    const { type, id } = message.payload;
-    const channelId = `${type}:${id}`;
-    // Remove websocket from channel if its connected to one.
-    if (ws.channel) unsubscribe(ws, channelId);
-    subscribe(ws, channelId);
+    if (!channel) {
+      redis.subscriber.subscribe(`CHANNEL:${id}`, (err, count) => {
+        if (err) return logger.error(err);
+
+        logger.debug("Currently subscribed to %d channels", count);
+      });
+
+      channel = new Channel(id);
+      this.channels[id] = channel;
+    }
+
+    channel.add(ws);
+  },
+  unsubscribe(ws, id) {
+    if (!(id in this.channels)) return;
+
+    const channel = this.channels[id];
+    channel.remove(ws);
+
+    if (!channel.connections.size) {
+      redis.subscriber.unsubscribe(`CHANNEL:${id}`, (err, count) => {
+        if (err) return logger.error(err);
+
+        logger.debug("Currently subscribed to %d channels", count);
+      });
+
+      delete this.channels[id];
+    }
+  },
+};
+
+const WS_EVENT_HANDLERS = {
+  SUBSCRIBE: (ws, { ids }) => {
+    for (const id of ids) {
+      manager.subscribe(ws, id);
+    }
   },
 
-  /**
-   * Publishes that someone started typing to the redis channel.
-   * @param ws
-   * @param message
-   */
-  TYPING: (ws, message) => {
-    redis.publisher.publish(ws.channel, JSON.stringify({
-      type: 'TYPING',
-      payload: message.payload,
-    }));
+  UNSUBSCRIBE: (ws, { ids }) => {
+    for (const id of ids) {
+      manager.unsubscribe(ws, id);
+    }
+  },
+
+  SET_ACTIVE_CHANNEL: (ws, { id }) => ws.channelId = id,
+
+  REMOVE_ACTIVE_CHANNEL: (ws, { id }) => {
+    if (!ws.channelId || id !== ws.channelId) return;
+
+    delete ws.channelId
+  },
+
+  TYPING: (ws) => {
+    logger.debug({ channelId: ws.channelId, channels: manager.channels }, 'TYPING');
+    if (!ws.channelId || !manager.channels[ws.channelId]) return;
+
+    const channel = manager.channels[ws.channelId];
+    const user = { id: ws.user.id, name: [ws.user.firstName, ws.user.lastName].join(' ') };
+    channel.publish(CHANNEL_EVENTS.TYPING, { user });
   },
 };
 
 
-const redisHandlers = {
-  TYPING: (channel, message) => {
-    const sockets = subscriptions.get(channel);
-    if (!sockets) return;
-    sockets.forEach(socket => {
-      socket.send(JSON.stringify({
-        type: 'TYPING',
-        payload: message.payload,
-      }));
-    });
+const REDIS_HANDLERS = {
+  TYPING: (channel, { user }) => {
+    for (const ws of channel.connections) {
+      if (ws.channelId === channel.id && ws.user._id.toString() !== user.id) {
+        send(ws, CHANNEL_EVENTS.TYPING, { user });
+      }
+    }
+  },
+
+  MESSAGE: (channel, { id }) => {
+    for (const ws of channel.connections) {
+      send(ws, CHANNEL_EVENTS.MESSAGE, { id });
+    }
   },
 }
 
+const parse = message => {
+  try {
+    const { type, payload } = JSON.parse(message);
+    return [type, payload];
+  } catch (err) {
+    logger.error(err);
+    return [null, null];
+  }
+};
 
 module.exports = {
   get server() {
@@ -78,46 +150,64 @@ module.exports = {
       logger.debug("Received websocket connection");
 
       ws.on('message', message => {
-        let data;
-        try {
-          data = JSON.parse(message);
-        } catch (err) {
-          return logger.error(err);
+        const [type, payload] = parse(message);
+        const handler = WS_EVENT_HANDLERS[type];
+        logger.debug({ type, payload }, "Received websocket message");
+
+        if (!handler) {
+          return logger.error("Received unknown websocket message type %s", type);
         }
-        const handler = socketHandlers[data.type];
-        logger.debug({ data }, "Received websocket message");
-        if (handler) return handler(ws, data);
-        logger.error("Received unknown websocket message type %s", data.type);
+
+        try {
+          handler(ws, payload)
+        } catch (err) {
+          logger.error(err);
+        }
       });
 
       ws.on('close', (code, reason) => {
         logger.debug({ code, reason }, "Websocket closed connection");
-        if (!ws.channel) return;
-        unsubscribe(ws, ws.channel);
       })
     });
 
-    redis.subscriber.on('message', (channel, message) => {
-      const data = JSON.parse(message);
-      const handler = redisHandlers[data.type];
-      logger.debug({ channel, data }, "Received redis subscription message");
-      if (handler) return handler(channel, data);
-      logger.error("Received unknown redis subscriber message type %s", data.type);
+    redis.subscriber.on('message', (name, message) => {
+      const channelId = name.replace('CHANNEL:', '');
+      const channel = manager.channels[channelId];
+      logger.debug({ name, message, channelId }, "Received redis message");
+
+      if (!channel) return;
+
+      const [type, payload] = parse(message);
+      const handler = REDIS_HANDLERS[type];
+      logger.debug({ type, payload }, "Decoded redis message");
+
+      if (!handler) {
+        return logger.error("Received unknown redis subscriber message type %s", data.type);
+      }
+
+      try {
+        handler(channel, payload)
+      } catch (err) {
+        logger.error(err);
+      }
     });
 
     return server;
   },
+
   attach: http => {
     http.on('upgrade', (request, socket, head) => {
-      logger.debug({ request }, "Received upgrade request");
+      logger.debug("Received upgrade request");
 
       session.middleware(request, {}, () => {
-        // Authentication logic goes here.
-        logger.debug({ request }, "Request authorized for websocket connection");
+        auth.middleware(request, {}, () => {
+          if (!request.user) logger.debug("Request not authorized for websocket connection");
 
-        module.exports.server.handleUpgrade(request, socket, head, ws => {
-          logger.debug({ request }, "Request upgraded to websocket connection");
-          module.exports.server.emit('connection', ws, request);
+          module.exports.server.handleUpgrade(request, socket, head, ws => {
+            logger.debug("Request upgraded to websocket connection");
+            ws.user = request.user;
+            module.exports.server.emit('connection', ws, request);
+          });
         });
       });
     });

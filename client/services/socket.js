@@ -1,14 +1,18 @@
 import EventEmitter from 'events';
+import React from "react";
+import throttle from "lodash/throttle";
+
+export const EVENTS = Object.freeze({
+  TYPING: 'TYPING',
+  MESSAGE: 'MESSAGE',
+});
+
+export const CHANNEL_TYPES = Object.freeze({
+  DIRECT: 'DIRECT',
+  GROUP: 'GROUP',
+});
 
 class Socket {
-  EVENTS = Object.freeze({
-    TYPING: 'TYPING',
-  });
-  CHANNEL_TYPES = Object.freeze({
-    DIRECT: 'DIRECT',
-    GROUP: 'GROUP',
-  });
-
   constructor(instance) {
     this._socket = instance;
     this._events = new EventEmitter();
@@ -55,6 +59,59 @@ class Socket {
   }
 }
 
-const instance = new Socket(new WebSocket(window.config.websocketURL))
+const socket = new Socket(new WebSocket(window.config.websocketURL));
 
-export default instance;
+export default socket;
+
+export function useTypingTracker(channelId, { delay = 2000, difference = 500 } = {}) {
+  const [current, setCurrent] = React.useState({});
+  const ref = React.useRef({});
+
+  ref.current = current;
+
+  const addUser = React.useCallback(user => {
+    const { id } = user;
+
+    const cleanup = () => {
+      if (!(id in ref.current)) return;
+
+      const { [id]: _, ...updated } = ref.current;
+      setCurrent(updated);
+    };
+
+    if (!(id in ref.current)) {
+      return setCurrent({
+        ...ref.current,
+        [id]: { user, timeout: setTimeout(cleanup, delay) }
+      });
+    }
+
+    clearTimeout(ref.current[id].timeout);
+    ref.current[id].timeout = setTimeout(cleanup, delay);
+  }, []);
+
+  const sendTyping = React.useCallback(throttle(() => {
+    socket.send(EVENTS.TYPING);
+  }, delay - difference), []);
+
+  const [users, setUsers] = React.useState([]);
+
+  React.useEffect(() => {
+    const entries = [];
+    for (const { user } of Object.values(current)) {
+      entries.push(user);
+    }
+    setUsers(entries);
+  }, [current]);
+
+  // Subscribe to the given channel and listen to the typing events.
+  React.useEffect(() => {
+    const unsubscribe = socket.on(EVENTS.TYPING, ({ user }) => addUser(user));
+    setUsers([]);
+
+    // Cleanup all the subscriptions when changing channels.
+    return () => unsubscribe();
+  }, [channelId]);
+
+  return [users, sendTyping];
+}
