@@ -7,7 +7,7 @@
  * runtime by the application.
  */
 
-require('dotenv');
+require('dotenv').config();
 
 module.exports = Object.freeze({
   mode: process.env.SLACKLORD_MODE || 'dev',
@@ -18,4 +18,6 @@ module.exports = Object.freeze({
   redis_uri: process.env.SLACKLORD_REDIS_URI || 'redis://127.0.0.1:6379/',
   // Secret value used for generating secrets. MUST BE CHANGED IN PRODUCTION.
   secret: process.env.SLACKLORD_SECRET || 'random-secret',
+  authenticated_user_id: process.env.SLACKLORD_AUTHENTICATED_USER_ID || undefined,
+  disable_csrf: process.env.SLACKLORD_DISABLE_CSRF === 'true' || false,
 });

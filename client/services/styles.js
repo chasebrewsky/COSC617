@@ -3,6 +3,7 @@ const { makeStyles } = require("@material-ui/core");
 export const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
+    height: '100%',
     display: 'flex',
   },
   nested: {
@@ -24,6 +25,8 @@ export const useStyles = makeStyles((theme) => ({
   },
   content: {
     flexGrow: 1,
+    display: 'flex',
+    flexDirection: 'column',
   },
   container: {
     display: 'flex',

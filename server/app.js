@@ -3,15 +3,10 @@ require('express-async-errors');
 const path = require('path');
 const cookieParser =  require('cookie-parser');
 const http = require('http');
-const WebSocket = require('ws');
-
-const authRouter = require('./routes/auth');
-const appRouter = require('./routes/app');
 
 const db = require('./shared/db');
 const config = require('./shared/config');
 const logger = require('./shared/logger');
-const redis = require('./shared/redis');
 const session = require('./shared/session');
 const sockets = require('./shared/sockets');
 const auth = require('./shared/auth');
@@ -47,9 +42,17 @@ module.exports = async () => {
   app.use(security.CSRFMiddleware)
   app.use(auth.middleware);
 
-  // Authentication routes
-  app.use('/', authRouter);
-  app.use('/', appRouter)
+  const api = express.Router();
+
+  // API router.
+  api.use(auth.APILoginRequired);
+  api.use(security.CSRFRequired);
+  api.use('/channels', require('./routes/channels'))
+
+  // Base routes.
+  app.use('/api', api);
+  app.use('/', require('./routes/auth'));
+  app.use('/', require('./routes/app'))
 
   // Error handler
   app.use((err, req, res, next) => {

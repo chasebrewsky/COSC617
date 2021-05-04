@@ -10,27 +10,71 @@ import TextField from "@material-ui/core/TextField";
 
 import socket, { useTypingTracker } from '../services/socket';
 import { useStyles } from '../services/styles';
+import API from "../services/API";
 
 
 export default function Channel() {
   const { id } = useParams();
   const styles = useStyles();
+  const [value, setValue] = React.useState('');
   const [channel, setChannel] = React.useState();
   const [messages, setMessages] = React.useState([]);
   const [typing, sendTyping] = useTypingTracker(id);
 
+  const fetchNewMessages = React.useCallback(() => {
+    const newest = messages.length ? messages[0] : null;
+    setValue('');
+
+    if (!newest) return;
+
+    const params = { after: newest.createdAt };
+
+    API.get(`/channels/${id}/messages`, { params }).then(response => {
+      setMessages([...response.data.results, ...messages].slice(0, 100));
+    });
+  }, [id, messages])
+
+  const onKeyDown = React.useCallback(event => {
+    if (event.code === 'Backspace') return;
+
+    if (event.code === 'Enter') {
+      return API
+        .post(`/channels/${id}/messages`, { content: event.target.value })
+        .then(() => fetchNewMessages());
+    }
+
+    sendTyping();
+  }, [id, fetchNewMessages]);
+
+  const onChange = React.useCallback(event => {
+    setValue(event.target.value);
+  }, []);
+
   React.useEffect(() => {
     socket.send('SUBSCRIBE', { ids: [id] });
     socket.send('SET_ACTIVE_CHANNEL', { id });
-    setChannel({name: `Channel ${id}`});
-    setMessages([
-      {user: 'Bob', content: 'Whats up bro'},
-      {user: 'George', content: 'Not much man'},
-    ]);
+
+    const listeners = [
+      socket.on('MESSAGE', () => fetchNewMessages()),
+    ];
+
+    API.get(`/channels/${id}`).then(response => {
+      setChannel(response.data);
+    });
+
+    API.get(`/channels/${id}/messages`).then(response => {
+      setMessages(response.data.results);
+    });
+
+    setValue('');
 
     return () => {
       socket.send('UNSUBSCRIBE', { ids: [id] });
       socket.send('REMOVE_ACTIVE_CHANNEL', { id });
+
+      for (const unsubscribe of listeners) {
+        unsubscribe();
+      }
     }
   }, [id]);
 
@@ -43,17 +87,28 @@ export default function Channel() {
           </Typography>
         </Toolbar>
       </AppBar>
+      <Container style={{
+        display: 'flex',
+        flexDirection: 'column-reverse',
+        flexGrow: 1,
+        overflowY: 'auto',
+        paddingBottom: '1rem',
+        paddingTop: '1rem',
+      }}>
+        {messages.map(message => (
+          <Paper className={styles.message}>
+            {message.user.firstName} {message.user.lastName}: {message.content}
+          </Paper>
+        ))}
+      </Container>
       <Container>
-        <div className={styles.content}>
-          {messages.map(message => (
-            <Paper className={styles.message}>{message.user}: {message.content}</Paper>
-          ))}
-        </div>
-        <Paper style={{ padding: '1rem', marginTop: '1rem' }}>
+        <Paper style={{ padding: '1rem', marginBottom: '1rem' }}>
           <TextField
             fullWidth
             placeholder="Message channel"
-            onKeyPress={sendTyping}
+            value={value}
+            onKeyPress={onKeyDown}
+            onChange={onChange}
             inputProps={{ 'aria-label': 'description' }}
           />
           <div style={{

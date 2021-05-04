@@ -8,7 +8,6 @@ export default function Home() {
     setMessages([{user: 'George'}, {user: 'Bob'}]);
   }, []);
   return (
-
       <Drawer variant="permanent" anchor="left">
         <Typography variant="h6">Direct Messages</Typography>
         <Divider />

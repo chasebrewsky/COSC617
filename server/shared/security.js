@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const logger = require('../shared/logger');
+const config = require('../shared/config');
 
 /**
  * HTTP methods that should be checked for CSRF attacks.
@@ -84,6 +85,7 @@ module.exports = {
    * @param next Next middleware function.
    */
   CSRFRequired: (req, res, next) => {
+    if (config.disable_csrf) return next();
     if (!protectedCSRFMethods.has(req.method.toUpperCase())) return next();
     const token = getCSRFToken(req);
     for (const validator of CSRFValidators) {

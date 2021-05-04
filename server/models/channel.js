@@ -1,14 +1,21 @@
 const mongoose = require('mongoose');
-const ObjectId = mongoose.Schema.Types.ObjectId
+const { toJSON } = require('../shared/serialization');
+
 
 module.exports = {
-  Channel: mongoose.model('Channel', new mongoose.Schema({
-    name: String,
-  })),
-  ChannelMessage: mongoose.model('ChannelMessage', new mongoose.Schema({
-    channelId: { type: ObjectId, require: true },
-    createdAt: { type: Date, require: true },
-    userId: { type: ObjectId, required: true },
-    content: { type: String, required: true },
-  })),
+  Channel: mongoose.model(
+    'Channel',
+    new mongoose.Schema({
+      name: { type: String, required: true, unique: true },
+    }).set('toJSON', toJSON),
+  ),
+  ChannelMessage: mongoose.model(
+    'ChannelMessage',
+    new mongoose.Schema({
+      channel: { type: mongoose.ObjectId, require: true, ref: 'Channel' },
+      createdAt: { type: Date, require: true },
+      user: { type: mongoose.ObjectId, required: true, ref: 'User' },
+      content: { type: String, required: true },
+    }).set('toJSON', toJSON),
+  ),
 }

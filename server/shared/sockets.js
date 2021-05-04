@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 const redis = require('./redis');
 const session = require('./session');
 const auth = require('./auth');
@@ -47,6 +49,7 @@ class Channel {
     redis.publisher.publish(`CHANNEL:${this.id}`, JSON.stringify({ type: event, payload }));
   }
 }
+
 
 const manager = {
   channels: {},
@@ -115,8 +118,15 @@ const WS_EVENT_HANDLERS = {
   },
 };
 
+const BROADCAST_HANDLERS = {
+  CHANNEL_CREATED: () => {
+    for (const ws of module.exports.server.clients) {
+      send(ws, 'CHANNEL_CREATED', {});
+    }
+  },
+};
 
-const REDIS_HANDLERS = {
+const CHANNEL_BROADCAST_HANDLERS = {
   TYPING: (channel, { user }) => {
     for (const ws of channel.connections) {
       if (ws.channelId === channel.id && ws.user._id.toString() !== user.id) {
@@ -125,9 +135,11 @@ const REDIS_HANDLERS = {
     }
   },
 
-  MESSAGE: (channel, { id }) => {
+  MESSAGE: (channel, { userId }) => {
     for (const ws of channel.connections) {
-      send(ws, CHANNEL_EVENTS.MESSAGE, { id });
+      if (ws.channelId === channel.id && ws.user._id.toString() !== userId) {
+        send(ws, CHANNEL_EVENTS.MESSAGE, { userId });
+      }
     }
   },
 }
@@ -170,31 +182,64 @@ module.exports = {
       })
     });
 
+    redis.subscriber.subscribe('BROADCAST', (err, count) => {
+      if (err) return logger.error(err);
+
+      logger.debug("Currently subscribed to %d channels", count);
+    });
+
+    // Handles messages from both the channel and broadcast queues.
     redis.subscriber.on('message', (name, message) => {
-      const channelId = name.replace('CHANNEL:', '');
-      const channel = manager.channels[channelId];
-      logger.debug({ name, message, channelId }, "Received redis message");
+      if (name === 'BROADCAST') {
+        const [type, payload] = parse(message)
+        const handler = BROADCAST_HANDLERS[type];
+        logger.debug({ type, payload }, "Received broadcast message");
 
-      if (!channel) return;
+        if (!handler) {
+          return logger.error("Received unknown broadcast message type %s", type);
+        }
 
-      const [type, payload] = parse(message);
-      const handler = REDIS_HANDLERS[type];
-      logger.debug({ type, payload }, "Decoded redis message");
+        try {
+          handler(payload);
+        } catch (err) {
+          logger.error(err);
+        }
 
-      if (!handler) {
-        return logger.error("Received unknown redis subscriber message type %s", data.type);
+        return;
       }
 
-      try {
-        handler(channel, payload)
-      } catch (err) {
-        logger.error(err);
+      if (_.startsWith('CHANNEL:', name)) {
+        const channelId = _.trimStart('CHANNEL:', name);
+        const channel = manager.channels[channelId];
+        logger.debug({ name, message, channelId }, "Received channel message");
+
+        if (!channel) return;
+
+        const [type, payload] = parse(message);
+        const handler = CHANNEL_BROADCAST_HANDLERS[type];
+        logger.debug({ type, payload }, "Decoded channel message");
+
+        if (!handler) {
+          return logger.error("Received unknown channel message type %s", type);
+        }
+
+        try {
+          handler(channel, payload)
+        } catch (err) {
+          logger.error(err);
+        }
+
+        return;
       }
     });
 
     return server;
   },
 
+  /**
+   * Attaches the websocket server to the HTTP server.
+   * @param http
+   */
   attach: http => {
     http.on('upgrade', (request, socket, head) => {
       logger.debug("Received upgrade request");
@@ -212,6 +257,14 @@ module.exports = {
       });
     });
   },
+
+  publish(channelId, event, payload) {
+    redis.publisher.publish(`CHANNEL:${channelId}`, JSON.stringify({ type: event, payload }));
+  },
+
+  broadcast(event, payload) {
+    redis.publisher.publish('BROADCAST', JSON.stringify({ type: event, payload }));
+  }
 };
 
 memget(module.exports, ['server']);

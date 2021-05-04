@@ -90,6 +90,14 @@ export function useTypingTracker(channelId, { delay = 2000, difference = 500 } =
     ref.current[id].timeout = setTimeout(cleanup, delay);
   }, []);
 
+  const removeUser = React.useCallback(id => {
+    if (!(id in ref.current)) return;
+
+    clearTimeout(ref.current[id].timeout);
+    const { [id]: _, ...updated } = ref.current;
+    setCurrent(updated);
+  }, []);
+
   const sendTyping = React.useCallback(throttle(() => {
     socket.send(EVENTS.TYPING);
   }, delay - difference), []);
@@ -106,11 +114,14 @@ export function useTypingTracker(channelId, { delay = 2000, difference = 500 } =
 
   // Subscribe to the given channel and listen to the typing events.
   React.useEffect(() => {
-    const unsubscribe = socket.on(EVENTS.TYPING, ({ user }) => addUser(user));
+    const listeners = [
+      socket.on(EVENTS.TYPING, ({ user }) => addUser(user)),
+      socket.on(EVENTS.MESSAGE, ({ userId }) => removeUser(userId)),
+    ];
     setUsers([]);
 
     // Cleanup all the subscriptions when changing channels.
-    return () => unsubscribe();
+    return () => listeners.forEach(unsubscribe => unsubscribe());
   }, [channelId]);
 
   return [users, sendTyping];
