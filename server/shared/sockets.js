@@ -41,6 +41,7 @@ class Channel {
   remove(ws) {
     if (!this.connections.has(ws)) return;
 
+    this.connections.delete(ws);
     ws.emit('unsubscribe', this.id);
   }
 
@@ -76,6 +77,7 @@ const manager = {
     channel.remove(ws);
 
     if (!channel.connections.size) {
+      logger.debug("Channel %s has no more connections", id);
       redis.subscriber.unsubscribe(`CHANNEL:${id}`, (err, count) => {
         if (err) return logger.error(err);
 
@@ -190,6 +192,8 @@ module.exports = {
 
     // Handles messages from both the channel and broadcast queues.
     redis.subscriber.on('message', (name, message) => {
+      logger.debug({ channel: name, message }, "Received redis message");
+
       if (name === 'BROADCAST') {
         const [type, payload] = parse(message)
         const handler = BROADCAST_HANDLERS[type];
@@ -259,10 +263,15 @@ module.exports = {
   },
 
   publish(channelId, event, payload) {
+    logger.debug(
+      { event, payload, channel: `CHANNEL:${channelId}` },
+      'Publishing to redis channel',
+    );
     redis.publisher.publish(`CHANNEL:${channelId}`, JSON.stringify({ type: event, payload }));
   },
 
   broadcast(event, payload) {
+    logger.debug({ event, payload, channel: `BROADCAST` }, 'Broadcasting to redis');
     redis.publisher.publish('BROADCAST', JSON.stringify({ type: event, payload }));
   }
 };

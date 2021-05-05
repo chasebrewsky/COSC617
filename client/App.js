@@ -1,4 +1,4 @@
-import { Route, BrowserRouter as Router, Switch } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Switch, Link } from 'react-router-dom';
 import React from 'react';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -10,6 +10,8 @@ import { useStyles } from './services/styles';
 import ChannelList from './components/ChannelList';
 import Channel from './components/Channel';
 import ChannelCreate from './components/ChannelCreate';
+import { ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 
 const theme = createMuiTheme({
   overrides: {
@@ -45,18 +47,28 @@ export default function App() {
             </Typography>
             <Divider />
             <List component="nav">
+              <ListItem
+                button
+                component="a"
+                href="/logout"
+                >
+                <ListItemIcon>
+                  <ExitToAppIcon />
+                </ListItemIcon>
+                <ListItemText primary="Logout" />
+              </ListItem>
               <ChannelList />
             </List>
           </Drawer>
           <main className={classes.content}>
             <Switch>
-              <Route path="/channels/create">
+              <Route path="/channels/create" exact>
                 <ChannelCreate />
               </Route>
               <Route path="/channels/:id">
                 <Channel />
               </Route>
-              <Route path="/">
+              <Route path="/" exact>
 
               </Route>
             </Switch>

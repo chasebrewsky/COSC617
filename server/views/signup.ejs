@@ -46,7 +46,9 @@
               <input id="password-confirmation" name="password_confirmation" class="input" type="password">
             </div>
           </div>
-          <input type="submit" value="Submit">
+          <input class="button primary" type="submit" value="Submit">
+          <a class="button danger" href="/login">Cancel</a>
+          <% include csrf.ejs %>
         </form>
       </div>
     </div>

@@ -8,5 +8,5 @@ const config = require('./config');
 
 module.exports = require('pino')({
   prettyPrint: config.mode === 'dev',
-  level: 'debug',
+  level: config.logging_level,
 });

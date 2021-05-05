@@ -29,7 +29,7 @@ module.exports = async () => {
   app.set('view engine', 'ejs');
 
   // Middleware
-  // app.use(require('pino-http')({ logger }));
+  app.use(require('pino-http')({ logger }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(session.middleware);

@@ -32,8 +32,4 @@ export const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'column',
   },
-  message: {
-    padding: '1rem',
-    marginTop: '1rem',
-  }
 }));
