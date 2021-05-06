@@ -81,3 +81,7 @@ jspm_packages/
 
 # Webpack assets
 dist/
+
+# Elastic Beanstalk config
+.ebextensions
+.npmrc
