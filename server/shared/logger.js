@@ -7,6 +7,6 @@
 const config = require('./config');
 
 module.exports = require('pino')({
-  prettyPrint: config.mode === 'dev',
+  prettyPrint: true,
   level: config.logging_level,
 });

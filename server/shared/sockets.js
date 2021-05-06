@@ -8,7 +8,10 @@ const WebSocket = require('ws');
 const { memget } = require('./memoize');
 
 const serialize = (type, payload) => JSON.stringify({ type, payload });
-const send = (ws, type, payload) => ws.send(serialize(type, payload));
+const send = (ws, type, payload) => {
+  logger.debug({ type, payload }, "Sending websocket message");
+  ws.send(serialize(type, payload));
+}
 
 const CHANNEL_EVENTS = Object.freeze({
   TYPING: 'TYPING',
@@ -212,8 +215,8 @@ module.exports = {
         return;
       }
 
-      if (_.startsWith('CHANNEL:', name)) {
-        const channelId = _.trimStart('CHANNEL:', name);
+      if (_.startsWith(name, 'CHANNEL:')) {
+        const channelId = name.replace(/^CHANNEL:/, '');
         const channel = manager.channels[channelId];
         logger.debug({ name, message, channelId }, "Received channel message");
 

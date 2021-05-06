@@ -46,7 +46,7 @@ export default function Channel() {
     }
 
     sendTyping();
-  }, [id, fetchNewMessages]);
+  }, [id, messages, fetchNewMessages]);
 
   const onChange = React.useCallback(event => {
     setValue(event.target.value);
@@ -55,6 +55,8 @@ export default function Channel() {
   React.useEffect(() => {
     socket.send('SUBSCRIBE', { ids: [id] });
     socket.send('SET_ACTIVE_CHANNEL', { id });
+
+    setMessages([]);
 
     const listeners = [
       socket.on('MESSAGE', () => fetchNewMessages()),
@@ -78,7 +80,7 @@ export default function Channel() {
         unsubscribe();
       }
     }
-  }, [id]);
+  }, [id, messages, fetchNewMessages]);
 
   return (
     <React.Fragment>
