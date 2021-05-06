@@ -1,17 +1,19 @@
 const User = require('../models/user');
 const logger = require('./logger')
+const config = require('./config');
 
 module.exports = {
   // Middleware that places the user object onto the request if the
   // user ID is in the session.
   middleware: (req, res, next) => {
-    if (!req.session.userId) return next();
-    User.findOne({_id: req.session.userId}).exec().then(user => {
+    const userId = req.session.userId || config.authenticated_user_id;
+    if (!userId) return next();
+    User.findOne({_id: userId}).exec().then(user => {
       req.user = user;
     }).catch(error => {
       // If this occurs, that means the user ID in the session is invalid. Remove it
       // from the session, log the error, and move to the next part of the middleware.
-      delete req.session.userId;
+      if (req.session.userId) delete req.session.userId;
       logger.error(error);
     }).finally(() => next());
   },

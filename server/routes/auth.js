@@ -11,10 +11,10 @@ router.use(security.CSRFRequired);
 
 const SignupSchema = yup.object().shape({
   email: yup.string().email().required(),
-  pwd: yup.string().required().max(50),
-  pwd2: yup.string().required(),
-  fname: yup.string(),
-  lname: yup.string(),
+  password: yup.string().required().max(50),
+  password_confirmation: yup.string().required(),
+  first_name: yup.string(),
+  last_name: yup.string(),
 });
 
 // Signup routes.
@@ -38,19 +38,18 @@ router.post('/signup', async (req, res) => {
       errors: ['User with email already exists'],
     }));
   }
-  if (parsed.pwd !== parsed.pwd2) {
+  if (parsed.password !== parsed.password_confirmation) {
     return res.render('signup', security.addCSRFToken(req, {
       errors: ['Passwords do not match'],
     }));
   }
-  const hashed = await bcrypt.hash(parsed.pwd, 10);
-  console.log(hashed);
+  const hashed = await bcrypt.hash(parsed.password, 10);
 
   await User.create({
     username: parsed.email,
     password: hashed,
-    firstName: parsed.fname,
-    lastName: parsed.lname,
+    firstName: parsed.first_name,
+    lastName: parsed.last_name,
   });
 
   return res.redirect('/');

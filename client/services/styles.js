@@ -3,6 +3,7 @@ const { makeStyles } = require("@material-ui/core");
 export const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
+    height: '100%',
     display: 'flex',
   },
   nested: {
@@ -16,11 +17,19 @@ export const useStyles = makeStyles((theme) => ({
   },
   logo: {
     padding: theme.spacing(2),
+    display: 'flex',
+    alignItems: 'center',
   },
   drawerPaper: {
     width: 240,
   },
   content: {
     flexGrow: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
   },
 }));

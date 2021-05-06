@@ -135,6 +135,33 @@ This document contains a living outline of how to interact with the REST API end
 }
 ```
 
+### Create Channel Message
+
+#### Request `POST /api/channels/{id}/messages`
+
+**URL Params**
+
+* **id**: ID of the channel.
+
+**Body**
+
+```json
+{
+  "content": "Hello"
+}
+```
+
+#### Response
+
+**Body**
+
+```json
+{
+  "id": "12345",
+  "content": "Hello"
+}
+```
+
 ## Users
 
 ### Get User

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    <h2>Students</h2>
+    <ul>
+      <li>Chase Brewer</li>
+      <li>Jacob Wilson</li>
+      <li>Sachin Hebbar</li>
+      <li>Matt Coury</li>
+    </ul>
+    <p>Visited <%= count %> times</p>
+    <p>Session visited <%= sessionCount %> times</p>
+    <input id="input" type="text">
+    <div id="indicator"></div>
+    <script>
+      const socket = new WebSocket('ws://localhost:3000/foo');
+      const input = document.getElementById('input');
+      const indicator = document.getElementById('indicator');
+      const throttle = (func, delay) => {
+        let last = 0;
+        return (...args) => {
+          let now = new Date().getTime();
+          if (now - last < delay) return;
+          last = now;
+          return func(...args);
+        }
+      };
+      const sendTyping = throttle(() => {
+        socket.send(JSON.stringify({
+          type: 'typing',
+          payload: 'Someone',
+        }))
+      }, 2000);
+      let timeout;
+
+      socket.addEventListener('open', () => {
+        socket.send(JSON.stringify({
+          type: 'channel_subscribe',
+          payload: '1',
+        }));
+      });
+
+      input.addEventListener('keypress', () => {
+        sendTyping();
+      });
+
+      socket.addEventListener('message', event => {
+        const data = JSON.parse(event.data);
+        if (data.type !== 'typing') return;
+        indicator.textContent = `${data.payload} is typing`;
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          indicator.textContent = '';
+        }, 3000);
+      });
+    </script>
+  </body>
+</html>

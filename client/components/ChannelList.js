@@ -1,20 +1,35 @@
-import { useStyles } from "../services/styles";
-import React from "react";
-import { Collapse, List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
-import ChatBubble from "@material-ui/icons/ChatBubble";
-import ExpandLess from "@material-ui/icons/ExpandLess";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import { Link, BrowserRouter as Router } from "react-router-dom";
+import { useStyles } from '../services/styles';
+import React from 'react';
+import { Collapse, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import ChatBubble from '@material-ui/icons/ChatBubble';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import AddCircle from '@material-ui/icons/AddCircle';
+import { Link } from 'react-router-dom';
+
+import API from '../services/API';
+import socket from '../services/socket';
 
 export default function ChannelList() {
   const classes = useStyles();
   const [channels, setChannels] = React.useState([]);
-  React.useEffect(() => {
-    // Make HTTP call to get messages.
-    setChannels([{id: 1, name: 'Video Games'}, {id: 2, name: 'Something'}]);
-  }, []);
   const [open, setOpen] = React.useState(false);
   const handleClick = () => setOpen(!open);
+
+  React.useEffect(() => {
+    const listener = socket.on('CHANNEL_CREATED', () => {
+      API.get('/channels').then(response => {
+        setChannels(response.data.results);
+      });
+    });
+
+    API.get('/channels').then(response => {
+      setChannels(response.data.results);
+    });
+
+    return () => listener();
+  }, []);
+
   return (
     <React.Fragment>
       <ListItem button onClick={handleClick}>
@@ -36,6 +51,16 @@ export default function ChannelList() {
               <ListItemText primary={channel.name} />
             </ListItem>
           ))}
+          <ListItem
+            button
+            component={Link}
+            to={`/channels/create`}
+            className={classes.nested}>
+            <ListItemIcon>
+              <AddCircle />
+            </ListItemIcon>
+            <ListItemText primary="Create" />
+          </ListItem>
         </List>
       </Collapse>
     </React.Fragment>

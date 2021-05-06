@@ -1,8 +1,8 @@
 // Create user in the development database.
 db.createUser({
-  user: 'slackord',
-  pwd: 'slackord',
+  user: 'slacklord',
+  pwd: 'slacklord',
   roles: [
-    {role: 'readWrite', db: 'slackord'},
+    {role: 'readWrite', db: 'slacklord'},
   ],
 })

@@ -7,31 +7,31 @@ body {
     /*padding-right: 20%;*/
 }
 
-button, input[type=submit] {
-    background-color: #08750b;
-    width: 20%;
-    color: #ffffff;
-    font-weight: bold;
-    padding: 15px;
-    border: none;
-    cursor:grab;
-}
+/*button, input[type=submit] {*/
+/*    background-color: #08750b;*/
+/*    width: 20%;*/
+/*    color: #ffffff;*/
+/*    font-weight: bold;*/
+/*    padding: 15px;*/
+/*    border: none;*/
+/*    cursor:grab;*/
+/*}*/
 
-form {
-    margin: 15px;
-    border: 5px solid #ffffff;
-    padding: 2%;
-    background-color: dodgerblue;
-}
+/*form {*/
+/*    margin: 15px;*/
+/*    border: 5px solid #ffffff;*/
+/*    padding: 2%;*/
+/*    background-color: dodgerblue;*/
+/*}*/
 
-input[type=text], input[type=password] {
-    width: 100%;
-    margin: 8px 0;  
-    padding: 12px 20px;   
-    display: inline-block;   
-    border: 2px solid #045304;   
-    box-sizing: border-box;
-}
+/*input[type=text], input[type=password] {*/
+/*    width: 100%;*/
+/*    margin: 8px 0;  */
+/*    padding: 12px 20px;   */
+/*    display: inline-block;   */
+/*    border: 2px solid #045304;   */
+/*    box-sizing: border-box;*/
+/*}*/
 
 .container {
     padding: 25px;   

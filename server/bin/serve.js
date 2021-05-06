@@ -3,11 +3,11 @@
 const config = require('../shared/config');
 const logger = require('../shared/logger');
 
-require('../app.js')().then(app => {
+require('../app.js')().then(({ http, app }) => {
   app.set('port', config.port);
 
   // Create and listen on server.
-  const server = app.listen(app.get('port'), () => {
+  const server = http.listen(app.get('port'), () => {
     const address = server.address();
     logger.info(`Server is listening on ${address.address}:${address.port}`);
   });
