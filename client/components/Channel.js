@@ -15,26 +15,59 @@ import socket, { useTypingTracker } from '../services/socket';
 import API from "../services/API";
 
 
-export default function Channel() {
-  const { id } = useParams();
-  const [value, setValue] = React.useState('');
-  const [channel, setChannel] = React.useState();
+const useChannelMessages = channelId => {
   const [messages, setMessages] = React.useState([]);
-  const [typing, sendTyping] = useTypingTracker(id);
+  const ref = React.useRef([]);
 
-  const fetchNewMessages = React.useCallback(() => {
-    const newest = messages.length ? messages[0] : null;
+  ref.current = messages;
+
+  const refresh = React.useCallback(() => {
+    const newest = ref.current.length ? ref.current[0] : null;
     const params = {};
-    setValue('');
 
     if (newest) {
       params.after = newest.createdAt;
     }
 
-    API.get(`/channels/${id}/messages`, { params }).then(response => {
-      setMessages([...response.data.results, ...messages].slice(0, 100));
+    API.get(`/channels/${channelId}/messages`, { params }).then(response => {
+      setMessages([...response.data.results, ...ref.current].slice(0, 100));
     });
-  }, [id, messages])
+  }, [channelId]);
+
+
+  React.useEffect(() => {
+    socket.send('SUBSCRIBE', { ids: [channelId] });
+    socket.send('SET_ACTIVE_CHANNEL', { id: channelId });
+
+    const listeners = [
+      socket.on('MESSAGE', () => refresh()),
+    ];
+
+    setMessages([]);
+    API.get(`/channels/${channelId}/messages`).then(response => {
+      setMessages(response.data.results);
+    });
+
+    return () => {
+      socket.send('UNSUBSCRIBE', { ids: [channelId] });
+      socket.send('REMOVE_ACTIVE_CHANNEL', { id: channelId });
+
+      for (const unsubscribe of listeners) {
+        unsubscribe();
+      }
+    }
+  }, [channelId]);
+
+  return [messages, refresh]
+};
+
+
+export default function Channel() {
+  const { id } = useParams();
+  const [value, setValue] = React.useState('');
+  const [channel, setChannel] = React.useState();
+  const [typing, sendTyping] = useTypingTracker(id);
+  const [messages, refresh] = useChannelMessages(id);
 
   const onKeyDown = React.useCallback(event => {
     if (event.code === 'Backspace') return;
@@ -42,45 +75,25 @@ export default function Channel() {
     if (event.code === 'Enter') {
       return API
         .post(`/channels/${id}/messages`, { content: event.target.value })
-        .then(() => fetchNewMessages());
+        .then(() => {
+          setValue('');
+          refresh();
+        });
     }
 
     sendTyping();
-  }, [id, messages, fetchNewMessages]);
+  }, [id, refresh]);
 
   const onChange = React.useCallback(event => {
     setValue(event.target.value);
   }, []);
 
   React.useEffect(() => {
-    socket.send('SUBSCRIBE', { ids: [id] });
-    socket.send('SET_ACTIVE_CHANNEL', { id });
-
-    setMessages([]);
-
-    const listeners = [
-      socket.on('MESSAGE', () => fetchNewMessages()),
-    ];
-
+    setValue('');
     API.get(`/channels/${id}`).then(response => {
       setChannel(response.data);
     });
-
-    API.get(`/channels/${id}/messages`).then(response => {
-      setMessages(response.data.results);
-    });
-
-    setValue('');
-
-    return () => {
-      socket.send('UNSUBSCRIBE', { ids: [id] });
-      socket.send('REMOVE_ACTIVE_CHANNEL', { id });
-
-      for (const unsubscribe of listeners) {
-        unsubscribe();
-      }
-    }
-  }, [id, messages, fetchNewMessages]);
+  }, [id]);
 
   return (
     <React.Fragment>
